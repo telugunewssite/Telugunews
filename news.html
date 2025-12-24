@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>తెలుగు న్యూస్</title>
+
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0, 0, 0, 0.08);
+            --accent-color: #FF6B35;
+            --border-color: #e0e0e0;
+            --overlay-bg: rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --card-bg: #1e1e1e;
+            --card-shadow: rgba(255, 255, 255, 0.05);
+            --accent-color: #FF8C61;
+            --border-color: #333333;
+            --overlay-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Noto Sans Telugu', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .app-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            margin-right: 16px;
+        }
+
+        .menu-icon span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            flex: 1;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1100;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: var(--card-bg);
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            transition: left 0.3s ease;
+            z-index: 1200;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 16px;
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 8px 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            color: var(--text-primary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 16px;
+        }
+
+        .sidebar-menu-item:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .theme-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+        }
+
+        .theme-switch-label {
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        .switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .content {
+            margin-top: 56px;
+            padding: 16px;
+            min-height: calc(100vh - 56px);
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 480px) {
+            .logo-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .logo-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 14px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .logo-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        .logo-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 2px 6px var(--card-shadow);
+            border: 1px solid var(--border-color);
+            min-height: 110px;
+            text-decoration: none;
+        }
+
+        .logo-card:active {
+            transform: scale(0.95);
+        }
+
+        .logo-card:hover {
+            box-shadow: 0 4px 10px var(--card-shadow);
+            transform: translateY(-1px);
+        }
+
+        .logo-container {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 6px;
+        }
+
+        .logo-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 56px);
+            background-color: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 900;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .spinner {
+            width: 46px;
+            height: 46px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .retry-button {
+            margin-top: 16px;
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .retry-button:active {
+            opacity: 0.8;
+        }
+
+        .about-content {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .about-content h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--accent-color);
+        }
+
+        .about-content p {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Share Dialog */
+        .share-dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1300;
+        }
+
+        .share-dialog {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            width: 90%;
+            max-width: 360px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        .share-dialog h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .share-dialog p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .share-link-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .share-link-input {
+            flex: 1;
+            font-size: 13px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .share-btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .share-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .share-btn-primary {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+
+        .share-btn-secondary {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bar">
+        <div class="menu-icon" id="menuIcon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="app-title" id="appTitle">తెలుగు న్యూస్</div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>మెనూ</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-item" id="homeMenuItem">🏠 హోమ్</div>
+            <div class="sidebar-menu-item" id="shareMenuItem">📤 షేర్ యాప్</div>
+            <div class="theme-switch">
+                <span class="theme-switch-label">🌙 డార్క్ థీమ్</span>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="sidebar-menu-item" id="aboutMenuItem">ℹ️ యాప్ గురించి</div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">లోడ్ అవుతోంది...</div>
+        <button class="retry-button" id="retryButton">మళ్లీ ప్రయత్నించండి</button>
+    </div>
+
+    <!-- Share Dialog -->
+    <div class="share-dialog-overlay" id="shareDialogOverlay">
+        <div class="share-dialog">
+            <h3>యాప్‌ను షేర్ చేయండి</h3>
+            <p>ఈ లింక్‌ను WhatsApp, SMS లేదా ఇతర యాప్స్‌లో షేర్ చేయండి.</p>
+            <div class="share-link-box">
+                <input type="text" id="shareLinkInput" class="share-link-input" readonly>
+            </div>
+            <div class="share-btn-row">
+                <button class="share-btn share-btn-secondary" id="shareCancelBtn">రద్దు</button>
+                <button class="share-btn share-btn-secondary" id="copyLinkBtn">లింక్ కాపీ</button>
+                <button class="share-btn share-btn-primary" id="openStoreBtn">లింక్ ఓపెన్</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content page active" id="homePage">
+        <div class="logo-grid" id="logoGrid"></div>
+    </div>
+
+    <div class="content page" id="aboutPage">
+        <div class="about-content">
+            <h2>యాప్ గురించి</h2>
+            <p>ఈ యాప్‌లో ప్రముఖ తెలుగు వార్తా వెబ్‌సైట్‌ల లోగోలను ఒకే చోట మీరు చూడవచ్చు.</p>
+            <p>ప్రతి లోగోపై ట్యాప్ చేస్తే, ఆ వెబ్‌సైట్ నేరుగా యాప్‌లోని WebViewలో ఓపెన్ అవుతుంది.</p>
+            <p><strong>వెర్షన్:</strong> 1.0.1</p>
+            <p><strong>డెవలపర్:</strong> తెలుగు న్యూస్ లాంచర్</p>
+        </div>
+    </div>
+
+    <script>
+        // CHANGE THIS TO YOUR REAL PLAY STORE LINK
+        const APP_SHARE_LINK = "https://play.google.com/store/apps/details?id=com.example.telugunews";
+
+        const newsWebsites = [
+          { name: "ఈనాడు",            url: "https://www.eenadu.net" },
+          { name: "సాక్షి",            url: "https://www.sakshi.com" },
+          { name: "ఆంధ్రజ్యోతి",      url: "https://www.andhrajyothy.com" },
+          { name: "నమస్తే తెలంగాణ",   url: "https://www.ntnews.com" },
+          { name: "ప్రజాశక్తి",        url: "https://www.prajasakti.com" },
+          { name: "వార్త",             url: "https://vaartha.com" },
+          { name: "సూర్య",             url: "https://www.suryaa.com" },
+          { name: "మన తెలంగాణ",       url: "https://www.manatelangana.news" },
+          { name: "ఆంధ్రభూమి",        url: "https://www.andhrabhoomi.net" },
+          { name: "ఆంధ్ర ప్రభ",        url: "https://epaper.prabhanews.com" },
+          { name: "ఈనాడు ePaper",     url: "https://epaper.eenadu.net" },
+          { name: "సాక్షి ePaper",     url: "https://epaper.sakshi.com" },
+          { name: "ఆంధ్రజ్యోతి ePaper",url:"https://epaper.andhrajyothy.com" },
+          { name: "ప్రజాశక్తి ePaper", url:"https://epaper.prajasakti.com" },
+          { name: "దిశ ePaper",        url: "https://epaper.dishadaily.com" },
+          { name: "తెలంగాణ టుడే ePaper",url:"https://epaper.telanganatoday.com" },
+          { name: "TV9 తెలుగు",        url: "https://tv9telugu.com" },
+          { name: "NTV తెలుగు",        url: "https://ntvtelugu.com" },
+          { name: "TV5 న్యూస్",        url: "https://www.tv5news.in" },
+          { name: "V6 వెలుగు",        url: "https://www.v6velugu.com" },
+          { name: "ABN ఆంధ్రజ్యోతి",  url: "https://www.abnandhrajyothy.com" },
+          { name: "10TV తెలుగు",       url: "https://10tv.in" },
+          { name: "HM TV",             url: "https://www.hmtvlive.com" },
+          { name: "AP 24x7",           url: "https://www.ap24x7live.com" },
+          { name: "News18 తెలుగు",     url: "https://telugu.news18.com" },
+          { name: "సమయం తెలుగు",      url: "https://telugu.samayam.com" },
+          { name: "BBC తెలుగు",        url: "https://www.bbc.com/telugu" },
+          { name: "OneIndia తెలుగు",   url: "https://telugu.oneindia.com" },
+          { name: "Asianet తెలుగు",    url: "https://telugu.asianetnews.com" },
+          { name: "ABP దేశం తెలుగు",   url: "https://telugu.abplive.com" },
+          { name: "తెలుగు360",         url: "https://www.telugu360.com" },
+          { name: "గ్రేట్ ఆంధ్ర",      url: "https://www.greatandhra.com" },
+          { name: "M9 న్యూస్",         url: "https://www.m9.news" },
+          { name: "Gulte తెలుగు",      url: "https://telugu.gulte.com" },
+          { name: "TeluguStop",        url: "https://www.telugustop.com" },
+          { name: "AP7AM",             url: "https://www.ap7am.com" },
+          { name: "Telugu Global",     url: "https://teluguglobal.com" },
+          { name: "India Herald తెలుగు",url:"https://www.indiaherald.com/Telugu" },
+          { name: "123Telugu",         url: "https://www.123telugu.com" },
+          { name: "Tollywood.net",     url: "https://www.tollywood.net" },
+          { name: "Mirchi9",           url: "https://www.mirchi9.com" },
+          { name: "Chitrajyothy",      url: "https://www.chitrajyothy.com" },
+          { name: "Cinejosh",          url: "https://www.cinejosh.com" },
+          { name: "Idlebrain",         url: "https://www.idlebrain.com" },
+          { name: "Visala Andhra",     url: "https://visalaandhra.com" },
+          { name: "Nava Telangana",    url: "https://www.navatelangana.com" },
+          { name: "Suryaa ePaper",     url: "https://epaper.suryaa.com" }
+        ];
+
+        const menuIcon = document.getElementById('menuIcon');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const themeToggle = document.getElementById('themeToggle');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const retryButton = document.getElementById('retryButton');
+        const loadingText = document.getElementById('loadingText');
+        const logoGrid = document.getElementById('logoGrid');
+        const homePage = document.getElementById('homePage');
+        const aboutPage = document.getElementById('aboutPage');
+        const homeMenuItem = document.getElementById('homeMenuItem');
+        const aboutMenuItem = document.getElementById('aboutMenuItem');
+        const appTitle = document.getElementById('appTitle');
+        const shareMenuItem = document.getElementById('shareMenuItem');
+
+        const shareDialogOverlay = document.getElementById('shareDialogOverlay');
+        const shareLinkInput = document.getElementById('shareLinkInput');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const openStoreBtn = document.getElementById('openStoreBtn');
+        const shareCancelBtn = document.getElementById('shareCancelBtn');
+
+        let currentUrl = "";
+        let loadingTimeout;
+
+        function initApp() {
+            loadTheme();
+            renderLogoGrid();
+            setupEventListeners();
+        }
+
+        function renderLogoGrid() {
+            logoGrid.innerHTML = "";
+            newsWebsites.forEach(site => {
+                const card = document.createElement('div');
+                card.className = 'logo-card';
+                card.setAttribute('data-url', site.url);
+
+                const favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(site.url)}&sz=128`;
+
+                card.innerHTML = `
+                    <div class="logo-container">
+                        <img src="${favicon}"
+                             alt="${site.name}"
+                             loading="lazy"
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22><text x=%2250%%22 y=%2250%%22 font-size=%2230%22 text-anchor=%22middle%22 dy=%22.3em%22>📰</text></svg>'">
+                    </div>
+                    <div class="logo-name">${site.name}</div>
+                `;
+                card.addEventListener('click', () => navigateToWebsite(site.url));
+                logoGrid.appendChild(card);
+            });
+        }
+
+        function navigateToWebsite(url) {
+            currentUrl = url;
+            showLoading("లోడ్ అవుతోంది...");
+            loadingTimeout = setTimeout(() => {
+                showRetry("లోడ్ అవ్వడంలో సమస్య. మీ ఇంటర్నెట్‌ను చెక్ చేసి మళ్లీ ప్రయత్నించండి.");
+            }, 8000);
+
+            try {
+                window.location.href = url;
+            } catch (e) {
+                showRetry("వెబ్‌సైట్ ఓపెన్ చేయడంలో సమస్య. మళ్లీ ప్రయత్నించండి.");
+            }
+        }
+
+        function showLoading(text) {
+            loadingText.textContent = text || "లోడ్ అవుతోంది...";
+            retryButton.style.display = 'none';
+            loadingOverlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+            clearTimeout(loadingTimeout);
+        }
+
+        function showRetry(text) {
+            loadingText.textContent = text;
+            retryButton.style.display = 'inline-block';
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('theme') || 'light';
+            if (saved === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('active');
+            sidebarOverlay.classList.add('active');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        }
+
+        function showPage(page) {
+            if (page === 'home') {
+                homePage.classList.add('active');
+                aboutPage.classList.remove('active');
+                appTitle.textContent = "తెలుగు న్యూస్";
+            } else {
+                homePage.classList.remove('active');
+                aboutPage.classList.add('active');
+                appTitle.textContent = "యాప్ గురించి";
+            }
+            closeSidebar();
+        }
+
+        // SHARE DIALOG LOGIC
+        function openShareDialog() {
+            shareLinkInput.value = APP_SHARE_LINK;
+            shareDialogOverlay.style.display = 'flex';
+        }
+
+        function closeShareDialog() {
+            shareDialogOverlay.style.display = 'none';
+        }
+
+        async function copyShareLink() {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(APP_SHARE_LINK);
+                    alert("యాప్ లింక్ కాపీ అయింది. WhatsApp లేదా SMSలో పేస్ట్ చేసి షేర్ చేయండి.");
+                } else {
+                    const tempInput = document.createElement("input");
+                    tempInput.value = APP_SHARE_LINK;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(tempInput);
+                    alert("యాప్ లింక్ కాపీ అయింది. WhatsApp లేదా SMSలో పేస్ట్ చేసి షేర్ చేయండి.");
+                }
+            } catch (e) {
+                alert("లింక్ కాపీ కాలేదు. దయచేసి మాన్యువల్‌గా సెలెక్ట్ చేసి కాపీ చేయండి.");
+            }
+        }
+
+        function openStoreLink() {
+            window.location.href = APP_SHARE_LINK;
+        }
+
+        function setupEventListeners() {
+            menuIcon.addEventListener('click', openSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            themeToggle.addEventListener('change', toggleTheme);
+            homeMenuItem.addEventListener('click', () => showPage('home'));
+            aboutMenuItem.addEventListener('click', () => showPage('about'));
+            retryButton.addEventListener('click', () => {
+                if (currentUrl) navigateToWebsite(currentUrl);
+            });
+
+            shareMenuItem.addEventListener('click', () => {
+                closeSidebar();
+                openShareDialog();
+            });
+
+            shareCancelBtn.addEventListener('click', closeShareDialog);
+            copyLinkBtn.addEventListener('click', copyShareLink);
+            openStoreBtn.addEventListener('click', openStoreLink);
+            shareDialogOverlay.addEventListener('click', (e) => {
+                if (e.target === shareDialogOverlay) {
+                    closeShareDialog();
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    hideLoading();
+                }
+            });
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
